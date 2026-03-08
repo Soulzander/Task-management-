@@ -12,6 +12,8 @@ const ICON_MAP = {
   Zap
 };
 
+import { safeJSONParse } from '../utils/storage';
+
 interface SubGoal {
   id: string;
   text: string;

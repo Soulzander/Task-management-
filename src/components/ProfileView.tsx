@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Download, Upload, Save, User, Image as ImageIcon, Bell } from 'lucide-react';
+import { safeJSONParse } from '../utils/storage';
 
 interface UserProfile {
   name: string;
@@ -11,8 +12,8 @@ interface UserProfile {
 
 export default function ProfileView() {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('userProfile');
-    return saved ? JSON.parse(saved) : { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+    return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
   });
   
   const [isSaved, setIsSaved] = useState(false);
@@ -43,11 +44,11 @@ export default function ProfileView() {
 
   const exportData = () => {
     const data = {
-      tasks: JSON.parse(localStorage.getItem('tasks') || '[]'),
-      goals: JSON.parse(localStorage.getItem('strategic_goals') || '[]'),
-      projects: JSON.parse(localStorage.getItem('projects') || '[]'),
-      journal: JSON.parse(localStorage.getItem('journal_entries') || '[]'),
-      userProfile: JSON.parse(localStorage.getItem('userProfile') || '{}')
+      tasks: safeJSONParse(localStorage.getItem('tasks'), []),
+      goals: safeJSONParse(localStorage.getItem('strategic_goals'), []),
+      projects: safeJSONParse(localStorage.getItem('projects'), []),
+      journal: safeJSONParse(localStorage.getItem('journal_entries'), []),
+      userProfile: safeJSONParse(localStorage.getItem('userProfile'), {})
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

@@ -14,6 +14,8 @@ import {
   Trash2
 } from 'lucide-react';
 
+import { safeJSONParse } from '../utils/storage';
+
 interface Subtask {
   id: string;
   text: string;
@@ -34,8 +36,7 @@ interface Project {
 
 export default function ProjectsView() {
   const [projects, setProjects] = useState<Project[]>(() => {
-    const saved = localStorage.getItem('projects');
-    return saved ? JSON.parse(saved) : [];
+    return safeJSONParse(localStorage.getItem('projects'), []);
   });
   const [isCreating, setIsCreating] = useState(false);
   const [newProject, setNewProject] = useState({

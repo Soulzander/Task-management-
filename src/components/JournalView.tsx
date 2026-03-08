@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Plus, Trash2, Calendar, Quote, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
+import { safeJSONParse } from '../utils/storage';
+
 interface JournalEntry {
   id: string;
   date: string;
@@ -19,8 +21,7 @@ const REMARKS = [
 
 export default function JournalView() {
   const [entries, setEntries] = useState<JournalEntry[]>(() => {
-    const saved = localStorage.getItem('journal_entries');
-    return saved ? JSON.parse(saved) : [];
+    return safeJSONParse(localStorage.getItem('journal_entries'), []);
   });
   const [newEntry, setNewEntry] = useState('');
   const [remark] = useState(() => REMARKS[Math.floor(Math.random() * REMARKS.length)]);

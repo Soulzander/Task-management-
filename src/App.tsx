@@ -10,6 +10,8 @@ import JournalView from './components/JournalView';
 import ProjectsView from './components/ProjectsView';
 import ProfileView from './components/ProfileView';
 
+import { safeJSONParse } from './utils/storage';
+
 interface Task {
   id: string;
   text: string;
@@ -34,8 +36,7 @@ const DIFFICULTY_WEIGHTS = {
 export default function App() {
   const [activePage, setActivePage] = useState('calendar');
   const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem('tasks');
-    return saved ? JSON.parse(saved) : [];
+    return safeJSONParse(localStorage.getItem('tasks'), []);
   });
   const [inputValue, setInputValue] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -43,15 +44,16 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [importKey, setImportKey] = useState(0);
   const [userProfile, setUserProfile] = useState(() => {
-    const saved = localStorage.getItem('userProfile');
-    return saved ? JSON.parse(saved) : { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+    return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
   });
 
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
-          const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+          const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+          const profile = safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
           profile.notificationsEnabled = true;
           localStorage.setItem('userProfile', JSON.stringify(profile));
           setUserProfile((prev: any) => ({ ...prev, notificationsEnabled: true }));
@@ -70,8 +72,8 @@ export default function App() {
       const todayStr = now.toISOString().split('T')[0];
       
       // 1. Check projects ending in 3 days
-      const projects = JSON.parse(localStorage.getItem('projects') || '[]');
-      const notifiedProjects = JSON.parse(localStorage.getItem('notifiedProjects') || '{}');
+      const projects = safeJSONParse(localStorage.getItem('projects'), []);
+      const notifiedProjects = safeJSONParse(localStorage.getItem('notifiedProjects'), {});
       
       projects.forEach((project: any) => {
         const endDate = new Date(project.endDate);
@@ -94,7 +96,7 @@ export default function App() {
       if (now.getHours() === 23) {
         const notifiedTasksDate = localStorage.getItem('notifiedTasksDate');
         if (notifiedTasksDate !== todayStr) {
-          const savedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+          const savedTasks = safeJSONParse(localStorage.getItem('tasks'), []);
           const hasIncompleteTasks = savedTasks.some((t: any) => !t.completed);
           if (hasIncompleteTasks) {
             new Notification('Incomplete Tasks', {
@@ -114,18 +116,13 @@ export default function App() {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      const saved = localStorage.getItem('userProfile');
-      if (saved) {
-        setUserProfile(JSON.parse(saved));
-      }
+      const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+      setUserProfile(safeJSONParse(localStorage.getItem('userProfile'), defaultProfile));
     };
     
     const handleDataImported = () => {
       handleStorageChange();
-      const savedTasks = localStorage.getItem('tasks');
-      if (savedTasks) {
-        setTasks(JSON.parse(savedTasks));
-      }
+      setTasks(safeJSONParse(localStorage.getItem('tasks'), []));
       setImportKey(prev => prev + 1);
     };
 
