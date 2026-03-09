@@ -97,7 +97,8 @@ export default function App() {
         const notifiedTasksDate = localStorage.getItem('notifiedTasksDate');
         if (notifiedTasksDate !== todayStr) {
           const savedTasks = safeJSONParse(localStorage.getItem('tasks'), []);
-          const hasIncompleteTasks = savedTasks.some((t: any) => !t.completed);
+          const todayTasks = savedTasks.filter((t: any) => new Date(t.createdAt).toDateString() === now.toDateString());
+          const hasIncompleteTasks = todayTasks.some((t: any) => !t.completed);
           if (hasIncompleteTasks) {
             new Notification('Incomplete Tasks', {
               body: 'You have incomplete tasks for today. One hour left!'
@@ -167,7 +168,11 @@ export default function App() {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   }, []);
 
-  const filteredTasks = tasks.filter((task) => {
+  const todayTasks = tasks.filter((task) => {
+    return new Date(task.createdAt).toDateString() === new Date().toDateString();
+  });
+
+  const filteredTasks = todayTasks.filter((task) => {
     const matchesFilter =
       filter === 'all' ||
       (filter === 'active' && !task.completed) ||
@@ -180,8 +185,8 @@ export default function App() {
     return a.completed ? 1 : -1;
   });
 
-  const totalPoints = tasks.reduce((acc, t) => acc + DIFFICULTY_WEIGHTS[t.difficulty], 0);
-  const earnedPoints = tasks
+  const totalPoints = todayTasks.reduce((acc, t) => acc + DIFFICULTY_WEIGHTS[t.difficulty], 0);
+  const earnedPoints = todayTasks
     .filter((t) => t.completed)
     .reduce((acc, t) => acc + DIFFICULTY_WEIGHTS[t.difficulty], 0);
   const progressPercentage = totalPoints > 0 ? (earnedPoints / totalPoints) * 100 : 0;

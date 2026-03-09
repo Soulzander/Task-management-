@@ -420,10 +420,14 @@ export default function ProjectsView() {
                             </div>
                             <div className="flex flex-col">
                               <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Lead & Team</span>
-                              <span className="text-xs text-zinc-300">
+                              <span className="text-xs text-zinc-300 font-medium">
                                 {project.inCharge || 'Unassigned'}
-                                {project.subordinates?.length > 0 && ` (+${project.subordinates.length} team)`}
                               </span>
+                              {project.subordinates?.length > 0 && (
+                                <span className="text-[10px] text-zinc-500 leading-tight mt-0.5">
+                                  {project.subordinates.join(', ')}
+                                </span>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 text-zinc-500">
