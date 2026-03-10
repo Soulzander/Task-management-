@@ -628,17 +628,17 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                           </motion.div>
                           
                           {confirmDeleteId === goal.id ? (
-                            <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2 animate-in fade-in zoom-in duration-200">
+                            <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2 animate-in fade-in zoom-in duration-200 relative z-20">
                               <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Still yes?</span>
                               <button 
                                 onClick={() => terminateGoal(goal.id)}
-                                className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded-lg hover:bg-rose-600 transition-colors"
+                                className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded-lg hover:bg-rose-600 transition-colors pointer-events-auto"
                               >
                                 Yes
                               </button>
                               <button 
                                 onClick={() => setConfirmDeleteId(null)}
-                                className="px-2 py-1 bg-white/10 text-white text-[10px] font-bold rounded-lg hover:bg-white/20 transition-colors"
+                                className="px-2 py-1 bg-white/10 text-white text-[10px] font-bold rounded-lg hover:bg-white/20 transition-colors pointer-events-auto"
                               >
                                 No
                               </button>
@@ -646,12 +646,14 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                           ) : (
                             <button 
                               onClick={() => setConfirmDeleteId(goal.id)}
-                              className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/10 text-zinc-500 hover:text-rose-500 transition-all border border-transparent hover:border-rose-500/20 group/terminate"
+                              className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/10 text-zinc-500 hover:text-rose-500 transition-all border border-transparent hover:border-rose-500/20 group/terminate relative z-20 pointer-events-auto"
                               title="Terminate Goal"
                             >
                               <Trash2 size={18} />
                             </button>
                           )}
+                          
+
                         </div>
                         <div className="flex flex-col items-end gap-2">
                           <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 bg-white/10 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
