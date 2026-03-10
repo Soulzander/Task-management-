@@ -10,53 +10,32 @@ import JournalView from './components/JournalView';
 import ProjectsView from './components/ProjectsView';
 import ProfileView from './components/ProfileView';
 
-import { safeJSONParse } from './utils/storage';
-
-interface Task {
-  id: string;
-  text: string;
-  completed: boolean;
-  createdAt: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  color: string;
-}
-
-const DIFFICULTY_COLORS = {
-  easy: '#10b981', // emerald-500
-  medium: '#f59e0b', // amber-500
-  hard: '#ef4444', // red-500
-};
-
-const DIFFICULTY_WEIGHTS = {
-  easy: 1,
-  medium: 2,
-  hard: 3,
-};
+import { storage } from './utils/storage';
+import { Task, UserProfile, Project } from './types';
+import { DIFFICULTY_COLORS, DIFFICULTY_WEIGHTS, DEFAULT_USER_PROFILE, STORAGE_KEYS } from './constants';
 
 export default function App() {
   const [activePage, setActivePage] = useState('calendar');
   const [tasks, setTasks] = useState<Task[]>(() => {
-    return safeJSONParse(localStorage.getItem('tasks'), []);
+    return storage.get(STORAGE_KEYS.TASKS, []);
   });
   const [inputValue, setInputValue] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [difficulty, setDifficulty] = useState<'easy' | 'medium' | 'hard'>('easy');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [importKey, setImportKey] = useState(0);
-  const [userProfile, setUserProfile] = useState(() => {
-    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
-    return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
+  const [userProfile, setUserProfile] = useState<UserProfile>(() => {
+    return storage.get(STORAGE_KEYS.USER_PROFILE, DEFAULT_USER_PROFILE);
   });
 
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
-          const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
-          const profile = safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
+          const profile = storage.get(STORAGE_KEYS.USER_PROFILE, DEFAULT_USER_PROFILE);
           profile.notificationsEnabled = true;
-          localStorage.setItem('userProfile', JSON.stringify(profile));
-          setUserProfile((prev: any) => ({ ...prev, notificationsEnabled: true }));
+          storage.set(STORAGE_KEYS.USER_PROFILE, profile);
+          setUserProfile((prev) => ({ ...prev, notificationsEnabled: true }));
         }
       });
     }
@@ -72,10 +51,10 @@ export default function App() {
       const todayStr = now.toISOString().split('T')[0];
       
       // 1. Check projects ending in 3 days
-      const projects = safeJSONParse(localStorage.getItem('projects'), []);
-      const notifiedProjects: Record<string, boolean> = safeJSONParse(localStorage.getItem('notifiedProjects'), {});
+      const projects = storage.get<Project[]>(STORAGE_KEYS.PROJECTS, []);
+      const notifiedProjects = storage.get<Record<string, boolean>>(STORAGE_KEYS.NOTIFIED_PROJECTS, {});
       
-      projects.forEach((project: any) => {
+      projects.forEach((project) => {
         const endDate = new Date(project.endDate);
         const timeDiff = endDate.getTime() - now.getTime();
         const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
@@ -90,20 +69,20 @@ export default function App() {
           }
         }
       });
-      localStorage.setItem('notifiedProjects', JSON.stringify(notifiedProjects));
+      storage.set(STORAGE_KEYS.NOTIFIED_PROJECTS, notifiedProjects);
 
       // 2. Check incomplete tasks 1 hour before day ends (23:00)
       if (now.getHours() === 23) {
-        const notifiedTasksDate = localStorage.getItem('notifiedTasksDate');
+        const notifiedTasksDate = localStorage.getItem(STORAGE_KEYS.NOTIFIED_TASKS_DATE);
         if (notifiedTasksDate !== todayStr) {
-          const savedTasks = safeJSONParse(localStorage.getItem('tasks'), []);
-          const todayTasks = savedTasks.filter((t: any) => new Date(t.createdAt).toDateString() === now.toDateString());
-          const hasIncompleteTasks = todayTasks.some((t: any) => !t.completed);
+          const savedTasks = storage.get<Task[]>(STORAGE_KEYS.TASKS, []);
+          const todayTasks = savedTasks.filter((t) => new Date(t.createdAt).toDateString() === now.toDateString());
+          const hasIncompleteTasks = todayTasks.some((t) => !t.completed);
           if (hasIncompleteTasks) {
             new Notification('Incomplete Tasks', {
               body: 'You have incomplete tasks for today. One hour left!'
             });
-            localStorage.setItem('notifiedTasksDate', todayStr);
+            storage.set(STORAGE_KEYS.NOTIFIED_TASKS_DATE, todayStr);
           }
         }
       }
@@ -117,13 +96,12 @@ export default function App() {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
-      setUserProfile(safeJSONParse(localStorage.getItem('userProfile'), defaultProfile));
+      setUserProfile(storage.get(STORAGE_KEYS.USER_PROFILE, DEFAULT_USER_PROFILE));
     };
     
     const handleDataImported = () => {
       handleStorageChange();
-      setTasks(safeJSONParse(localStorage.getItem('tasks'), []));
+      setTasks(storage.get(STORAGE_KEYS.TASKS, []));
       setImportKey(prev => prev + 1);
     };
 
@@ -138,7 +116,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+    storage.set(STORAGE_KEYS.TASKS, tasks);
   }, [tasks]);
 
   const addTask = useCallback(() => {

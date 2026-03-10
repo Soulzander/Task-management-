@@ -1,15 +1,9 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { BookOpen, Plus, Trash2, Calendar, Quote, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
-
-import { safeJSONParse } from '../utils/storage';
-
-interface JournalEntry {
-  id: string;
-  date: string;
-  content: string;
-  mood?: string;
-}
+import { storage } from '../utils/storage';
+import { JournalEntry } from '../types';
+import { STORAGE_KEYS } from '../constants';
 
 const REMARKS = [
   "The palest ink is better than the best memory.",
@@ -21,13 +15,13 @@ const REMARKS = [
 
 export default function JournalView() {
   const [entries, setEntries] = useState<JournalEntry[]>(() => {
-    return safeJSONParse(localStorage.getItem('journal_entries'), []);
+    return storage.get(STORAGE_KEYS.JOURNAL_ENTRIES, []);
   });
   const [newEntry, setNewEntry] = useState('');
   const [remark] = useState(() => REMARKS[Math.floor(Math.random() * REMARKS.length)]);
 
   useEffect(() => {
-    localStorage.setItem('journal_entries', JSON.stringify(entries));
+    storage.set(STORAGE_KEYS.JOURNAL_ENTRIES, entries);
   }, [entries]);
 
   const addEntry = () => {
@@ -58,13 +52,14 @@ export default function JournalView() {
         animate={{ opacity: 1, y: 0 }}
         className="relative group"
       >
-        <div className="relative bg-white/[0.02] border border-white/10 p-8 rounded-3xl flex flex-col items-center text-center gap-4">
-          <Quote size={32} className="text-brand-primary opacity-30" />
+        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-100 transition duration-1000" />
+        <div className="relative glass p-8 rounded-3xl flex flex-col items-center text-center gap-4 border-white/5">
+          <Quote size={32} className="text-indigo-400 opacity-50" />
           <p className="text-xl md:text-2xl font-remark text-zinc-300 italic tracking-wide">
             "{remark}"
           </p>
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500">
-            <Sparkles size={12} className="text-brand-primary" />
+            <Sparkles size={12} className="text-indigo-500" />
             <span>Daily Reflection</span>
           </div>
         </div>
@@ -76,13 +71,13 @@ export default function JournalView() {
       </header>
 
       {/* New Entry Input */}
-      <section className="bg-white/[0.02] border border-white/10 p-8 rounded-[2.5rem] relative overflow-hidden group">
-        <div className="absolute -right-20 -top-20 w-64 h-64 bg-brand-primary/5 rounded-full blur-[100px] group-hover:bg-brand-primary/10 transition-all duration-700" />
+      <section className="glass p-8 rounded-[2.5rem] border-white/10 relative overflow-hidden group">
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-[100px] group-hover:bg-indigo-500/20 transition-all duration-700" />
         
         <div className="relative z-10 space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                 <BookOpen size={20} />
               </div>
               <span className="text-sm font-bold text-zinc-300">New Entry</span>
@@ -96,14 +91,14 @@ export default function JournalView() {
             value={newEntry}
             onChange={(e) => setNewEntry(e.target.value)}
             placeholder="What's on your mind today?"
-            className="w-full h-48 bg-white/[0.03] border border-white/5 rounded-2xl p-6 text-xl font-sans text-zinc-200 placeholder:text-zinc-700 focus:border-brand-primary/30 outline-none transition-all resize-none custom-scrollbar"
+            className="w-full h-48 bg-black/20 border border-white/5 rounded-2xl p-6 text-2xl font-journal text-zinc-200 placeholder:text-zinc-700 focus:border-indigo-500/30 outline-none transition-all resize-none custom-scrollbar"
           />
 
           <div className="flex justify-end">
             <button
               onClick={addEntry}
               disabled={!newEntry.trim()}
-              className="px-8 py-3 rounded-xl bg-brand-primary hover:bg-brand-primary/80 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-bold transition-all shadow-lg shadow-brand-primary/20 flex items-center gap-2 group/btn"
+              className="px-8 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-bold transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 group/btn"
             >
               <Plus size={20} className="group-hover/btn:rotate-90 transition-transform" />
               Save Reflection
@@ -129,13 +124,13 @@ export default function JournalView() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl group relative overflow-hidden"
+                className="glass p-8 rounded-3xl border-white/5 group relative overflow-hidden"
               >
-                <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/[0.01] rounded-full blur-3xl group-hover:bg-white/[0.03] transition-all" />
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-white/[0.02] rounded-full blur-3xl group-hover:bg-white/[0.05] transition-all" />
                 
                 <div className="relative z-10 space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-brand-primary/40">
+                    <div className="flex items-center gap-2 text-indigo-400/60">
                       <Calendar size={14} />
                       <span className="text-xs font-bold uppercase tracking-wider">{entry.date}</span>
                     </div>
@@ -147,7 +142,7 @@ export default function JournalView() {
                     </button>
                   </div>
                   
-                  <p className="text-xl font-sans text-zinc-300 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-2xl font-journal text-zinc-300 leading-relaxed whitespace-pre-wrap">
                     {entry.content}
                   </p>
                 </div>

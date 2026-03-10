@@ -1,31 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Download, Upload, Save, User, Image as ImageIcon, Bell, Palette } from 'lucide-react';
-import { safeJSONParse } from '../utils/storage';
-
-interface UserProfile {
-  name: string;
-  description: string;
-  image: string;
-  notificationsEnabled: boolean;
-  theme?: string;
-}
-
-const ANIME_AVATARS = [
-  'https://picsum.photos/seed/anime1/200/200',
-  'https://picsum.photos/seed/anime2/200/200',
-  'https://picsum.photos/seed/anime3/200/200',
-  'https://picsum.photos/seed/anime4/200/200',
-  'https://picsum.photos/seed/anime5/200/200',
-  'https://picsum.photos/seed/anime6/200/200',
-  'https://picsum.photos/seed/anime7/200/200',
-  'https://picsum.photos/seed/anime8/200/200',
-];
+import { Download, Upload, Save, User, Image as ImageIcon, Bell } from 'lucide-react';
+import { storage } from '../utils/storage';
+import { UserProfile } from '../types';
+import { DEFAULT_USER_PROFILE, STORAGE_KEYS } from '../constants';
 
 export default function ProfileView() {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: ANIME_AVATARS[0], notificationsEnabled: false, theme: 'default' };
-    return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
+    return storage.get(STORAGE_KEYS.USER_PROFILE, DEFAULT_USER_PROFILE);
   });
   
   const [isSaved, setIsSaved] = useState(false);
@@ -34,7 +16,7 @@ export default function ProfileView() {
   const importInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    localStorage.setItem('userProfile', JSON.stringify(profile));
+    storage.set(STORAGE_KEYS.USER_PROFILE, profile);
     window.dispatchEvent(new Event('profileUpdated'));
   }, [profile]);
 
@@ -56,11 +38,11 @@ export default function ProfileView() {
 
   const exportData = () => {
     const data = {
-      tasks: safeJSONParse(localStorage.getItem('tasks'), []),
-      goals: safeJSONParse(localStorage.getItem('strategic_goals'), []),
-      projects: safeJSONParse(localStorage.getItem('projects'), []),
-      journal: safeJSONParse(localStorage.getItem('journal_entries'), []),
-      userProfile: safeJSONParse(localStorage.getItem('userProfile'), {})
+      tasks: storage.get(STORAGE_KEYS.TASKS, []),
+      goals: storage.get(STORAGE_KEYS.GOALS, []),
+      projects: storage.get(STORAGE_KEYS.PROJECTS, []),
+      journal: storage.get('journal_entries', []),
+      userProfile: storage.get(STORAGE_KEYS.USER_PROFILE, {})
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -81,11 +63,11 @@ export default function ProfileView() {
       reader.onload = (event) => {
         try {
           const data = JSON.parse(event.target?.result as string);
-          if (data.tasks) localStorage.setItem('tasks', JSON.stringify(data.tasks));
-          if (data.goals) localStorage.setItem('strategic_goals', JSON.stringify(data.goals));
-          if (data.projects) localStorage.setItem('projects', JSON.stringify(data.projects));
-          if (data.journal) localStorage.setItem('journal_entries', JSON.stringify(data.journal));
-          if (data.userProfile) localStorage.setItem('userProfile', JSON.stringify(data.userProfile));
+          if (data.tasks) storage.set(STORAGE_KEYS.TASKS, data.tasks);
+          if (data.goals) storage.set(STORAGE_KEYS.GOALS, data.goals);
+          if (data.projects) storage.set(STORAGE_KEYS.PROJECTS, data.projects);
+          if (data.journal) storage.set('journal_entries', data.journal);
+          if (data.userProfile) storage.set(STORAGE_KEYS.USER_PROFILE, data.userProfile);
           
           setImportStatus('success');
           setTimeout(() => setImportStatus('idle'), 3000);
@@ -101,58 +83,34 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="space-y-12 pb-32">
+    <div className="space-y-12">
       <header className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tighter text-white mb-4 anime-text-glow uppercase italic">
+        <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-white mb-4">
           Profile Settings
         </h1>
-        <p className="text-anime-cyan font-mono text-xs tracking-[0.3em] uppercase opacity-80">Manage your identity and data.</p>
+        <p className="text-zinc-400 text-lg">Manage your identity and data.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Profile Edit Section */}
-        <section className="anime-card p-8 rounded-none space-y-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-anime-cyan/5 rotate-45 translate-x-16 -translate-y-16" />
-          <div className="flex items-center gap-4 mb-6 relative z-10">
-            <div className="w-12 h-12 bg-anime-purple/20 flex items-center justify-center text-anime-cyan border border-anime-cyan/30 skew-x-[-10deg]">
-              <User size={24} className="skew-x-[10deg]" />
+        <section className="glass p-8 rounded-3xl space-y-8">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+              <User size={24} />
             </div>
-            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Identity</h2>
+            <h2 className="text-2xl font-display font-bold text-white">Identity</h2>
           </div>
 
-          <div className="space-y-8 relative z-10">
-            <div className="space-y-4">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-anime-cyan ml-1">Select Avatar</label>
-              <div className="grid grid-cols-4 gap-4">
-                {ANIME_AVATARS.map((avatar, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setProfile(prev => ({ ...prev, image: avatar }))}
-                    className={`relative aspect-square overflow-hidden border-2 transition-all ${
-                      profile.image === avatar ? 'border-anime-cyan shadow-[0_0_15px_rgba(0,255,255,0.5)] scale-105' : 'border-white/10 grayscale hover:grayscale-0 hover:border-white/30'
-                    }`}
-                  >
-                    <img src={avatar} alt={`Avatar ${idx}`} className="w-full h-full object-cover" />
-                    {profile.image === avatar && (
-                      <div className="absolute inset-0 bg-anime-cyan/20 flex items-center justify-center">
-                        <div className="w-2 h-2 bg-white rounded-full animate-ping" />
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+          <div className="space-y-6">
             <div className="flex flex-col items-center sm:flex-row gap-6">
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                <div className="absolute -inset-2 bg-gradient-to-r from-anime-cyan to-anime-pink rounded-full blur opacity-40 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
                 <img 
                   src={profile.image} 
                   alt="Profile" 
-                  className="relative w-32 h-32 rounded-full object-cover border-4 border-anime-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)] group-hover:scale-105 transition-transform"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-white/10 group-hover:border-indigo-500/50 transition-colors"
                 />
-                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20">
-                  <Upload className="text-white" size={32} />
+                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <ImageIcon className="text-white" size={32} />
                 </div>
                 <input 
                   type="file" 
@@ -164,35 +122,35 @@ export default function ProfileView() {
               </div>
               
               <div className="flex-1 w-full space-y-3">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-anime-cyan ml-1">Display Name</label>
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 ml-1">Display Name</label>
                 <input 
                   type="text"
                   value={profile.name}
                   onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full h-14 px-6 bg-black/60 border-b-2 border-anime-cyan/30 focus:border-anime-cyan outline-none text-white text-lg font-display tracking-wider transition-all"
+                  className="w-full h-14 px-6 rounded-2xl bg-black/40 border border-white/5 focus:border-indigo-500/50 outline-none text-zinc-200 text-lg transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-anime-cyan ml-1">Description</label>
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 ml-1">Description</label>
               <input 
                 type="text"
                 value={profile.description || ''}
                 onChange={e => setProfile(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Productivity Architect"
-                className="w-full h-14 px-6 bg-black/60 border-b-2 border-anime-cyan/30 focus:border-anime-cyan outline-none text-white text-lg font-display tracking-wider transition-all"
+                className="w-full h-14 px-6 rounded-2xl bg-black/40 border border-white/5 focus:border-indigo-500/50 outline-none text-zinc-200 text-lg transition-all"
               />
             </div>
 
-            <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 skew-x-[-5deg]">
-              <div className="flex items-center gap-3 skew-x-[5deg]">
-                <div className="w-10 h-10 bg-anime-purple/20 flex items-center justify-center text-anime-cyan border border-anime-cyan/20">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
                   <Bell size={20} />
                 </div>
                 <div>
-                  <h3 className="text-white font-bold uppercase text-xs tracking-wider">Notifications</h3>
-                  <p className="text-zinc-500 text-[10px] uppercase font-mono">System alerts & task updates</p>
+                  <h3 className="text-white font-medium">Notifications</h3>
+                  <p className="text-zinc-500 text-xs">Get alerts for deadlines and tasks</p>
                 </div>
               </div>
               <button
@@ -209,43 +167,42 @@ export default function ProfileView() {
                     setProfile(prev => ({ ...prev, notificationsEnabled: !prev.notificationsEnabled }));
                   }
                 }}
-                className={`w-12 h-6 rounded-none skew-x-[5deg] transition-colors relative ${profile.notificationsEnabled ? 'bg-anime-cyan' : 'bg-zinc-800'}`}
+                className={`w-12 h-6 rounded-full transition-colors relative ${profile.notificationsEnabled ? 'bg-indigo-500' : 'bg-zinc-700'}`}
               >
-                <div className={`absolute top-1 w-4 h-4 rounded-none bg-white transition-transform ${profile.notificationsEnabled ? 'left-7 bg-black' : 'left-1'}`} />
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${profile.notificationsEnabled ? 'left-7' : 'left-1'}`} />
               </button>
             </div>
 
             <button 
               onClick={handleSave}
-              className="anime-button w-full h-14 flex items-center justify-center gap-2"
+              className="w-full h-14 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium flex items-center justify-center gap-2 transition-all"
             >
-              <Save size={20} className="skew-x-[10deg]" />
-              <span className="skew-x-[10deg] uppercase tracking-widest">{isSaved ? 'Synchronized!' : 'Update System'}</span>
+              <Save size={20} />
+              {isSaved ? 'Saved!' : 'Save Changes'}
             </button>
           </div>
         </section>
 
         {/* Data Management Section */}
-        <section className="anime-card p-8 rounded-none space-y-8 relative overflow-hidden">
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-anime-pink/5 -rotate-45 -translate-x-16 translate-y-16" />
-          <div className="flex items-center gap-4 mb-6 relative z-10">
-            <div className="w-12 h-12 bg-anime-pink/20 flex items-center justify-center text-anime-pink border border-anime-pink/30 skew-x-[-10deg]">
-              <Save size={24} className="skew-x-[10deg]" />
+        <section className="glass p-8 rounded-3xl space-y-8">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+              <Save size={24} />
             </div>
-            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Data Core</h2>
+            <h2 className="text-2xl font-display font-bold text-white">Data Management</h2>
           </div>
 
-          <p className="text-zinc-400 text-sm font-mono uppercase tracking-tight relative z-10">
-            Backup your strategic trajectory to the local storage or external data crystals.
+          <p className="text-zinc-400">
+            Export your data to a JSON file to back it up or transfer it to another device. You can import it later to restore your workspace.
           </p>
 
-          <div className="space-y-4 relative z-10">
+          <div className="space-y-4">
             <button 
               onClick={exportData}
-              className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-bold flex items-center justify-center gap-2 transition-all border border-white/10 skew-x-[-10deg]"
+              className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center justify-center gap-2 transition-all border border-white/5"
             >
-              <Download size={20} className="skew-x-[10deg] text-anime-cyan" />
-              <span className="skew-x-[10deg] uppercase tracking-widest">Export Core</span>
+              <Download size={20} />
+              Export Data
             </button>
 
             <div className="relative">
@@ -258,62 +215,19 @@ export default function ProfileView() {
               />
               <button 
                 onClick={() => importInputRef.current?.click()}
-                className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-bold flex items-center justify-center gap-2 transition-all border border-white/10 skew-x-[-10deg]"
+                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center justify-center gap-2 transition-all border border-white/5"
               >
-                <Upload size={20} className="skew-x-[10deg] text-anime-pink" />
-                <span className="skew-x-[10deg] uppercase tracking-widest">Import Core</span>
+                <Upload size={20} />
+                Import Data
               </button>
             </div>
             
             {importStatus === 'success' && (
-              <p className="text-anime-cyan text-[10px] font-mono text-center animate-pulse">SYSTEM RESTORE SUCCESSFUL</p>
+              <p className="text-emerald-400 text-sm text-center">Data imported successfully!</p>
             )}
             {importStatus === 'error' && (
-              <p className="text-anime-pink text-[10px] font-mono text-center animate-pulse">CORE CORRUPTION DETECTED</p>
+              <p className="text-red-400 text-sm text-center">Error importing data. Invalid file format.</p>
             )}
-          </div>
-        </section>
-
-        {/* Themes Section */}
-        <section className="anime-card p-8 rounded-none space-y-8 relative overflow-hidden lg:col-span-2">
-          <div className="absolute top-0 left-0 w-32 h-32 bg-anime-yellow/5 rotate-45 -translate-x-16 -translate-y-16" />
-          <div className="flex items-center gap-4 mb-6 relative z-10">
-            <div className="w-12 h-12 bg-anime-yellow/20 flex items-center justify-center text-anime-yellow border border-anime-yellow/30 skew-x-[-10deg]">
-              <Palette size={24} className="skew-x-[10deg]" />
-            </div>
-            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Themes</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
-            {[
-              { id: 'default', name: 'Cyberpunk', colors: ['#ff00ff', '#00ffff'] },
-              { id: 'anime', name: 'Anime', colors: ['#ff7b9c', '#60d394'] },
-              { id: 'mecha', name: 'Mecha', colors: ['#ff3860', '#00d1b2'] },
-              { id: 'sakura', name: 'Sakura', colors: ['#ffb7b2', '#e2f0cb'] },
-              { id: 'shonen', name: 'Shonen', colors: ['#ff5722', '#03a9f4'] }
-            ].map((theme) => (
-              <button
-                key={theme.id}
-                onClick={() => setProfile(prev => ({ ...prev, theme: theme.id }))}
-                className={`relative p-4 border-2 transition-all skew-x-[-5deg] group overflow-hidden ${
-                  (profile.theme || 'default') === theme.id 
-                    ? 'border-anime-cyan bg-anime-cyan/10 shadow-[0_0_15px_rgba(0,255,255,0.3)]' 
-                    : 'border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/5'
-                }`}
-              >
-                <div className="skew-x-[5deg] flex flex-col items-center gap-3">
-                  <div className="flex gap-2">
-                    <div className="w-6 h-6 rounded-full shadow-lg" style={{ backgroundColor: theme.colors[0] }} />
-                    <div className="w-6 h-6 rounded-full shadow-lg" style={{ backgroundColor: theme.colors[1] }} />
-                  </div>
-                  <span className={`font-bold uppercase tracking-widest text-sm ${
-                    (profile.theme || 'default') === theme.id ? 'text-anime-cyan' : 'text-zinc-400 group-hover:text-white'
-                  }`}>
-                    {theme.name}
-                  </span>
-                </div>
-              </button>
-            ))}
           </div>
         </section>
       </div>

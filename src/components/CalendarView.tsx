@@ -1,15 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight, X, CheckCircle2, Circle, BookOpen } from 'lucide-react';
-
-interface Task {
-  id: string;
-  text: string;
-  completed: boolean;
-  createdAt: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-  color: string;
-}
+import { Task } from '../types';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -107,12 +99,12 @@ export default function CalendarView({ tasks }: CalendarViewProps) {
             <motion.div
               key={day}
               data-today={today}
-              whileHover={{ x: 5 }}
+              whileHover={{ x: 10 }}
               onClick={() => setSelectedDate({ day, month: selectedMonth, year: currentYear })}
-              className={`w-full py-3 px-5 rounded-2xl flex items-center justify-between transition-all duration-500 cursor-pointer backdrop-blur-md border ${
+              className={`w-full py-3 px-5 rounded-2xl flex items-center justify-between transition-all duration-500 cursor-pointer backdrop-blur-md ${
                 today 
-                  ? 'bg-brand-primary border-brand-primary/50 shadow-xl shadow-brand-primary/20 text-white' 
-                  : 'bg-white/[0.02] border-white/5 text-zinc-400 hover:bg-white/[0.05] hover:border-white/10'
+                  ? 'bg-indigo-500/90 shadow-xl shadow-indigo-500/30 text-white' 
+                  : 'bg-white/5 text-zinc-400 hover:bg-white/10'
               }`}
             >
               <div className="flex items-center gap-4">

@@ -1,6 +1,9 @@
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'motion/react';
 import { Target, Trophy, Rocket, Flag, Calendar, Star, Plus, Trash2, X, CheckCircle2, Circle, Zap, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { storage } from '../utils/storage';
+import { Goal, SubGoal } from '../types';
+import { STORAGE_KEYS } from '../constants';
 
 const ICON_MAP = {
   Flag,
@@ -11,25 +14,6 @@ const ICON_MAP = {
   Star,
   Zap
 };
-
-import { safeJSONParse } from '../utils/storage';
-
-interface SubGoal {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface Goal {
-  id: string;
-  period: string;
-  title: string;
-  description: string;
-  color: string;
-  icon: keyof typeof ICON_MAP;
-  subGoals: SubGoal[];
-  createdAt: number;
-}
 
 const ICON_OPTIONS: (keyof typeof ICON_MAP)[] = ['Zap', 'Rocket', 'Target', 'Trophy', 'Flag', 'Calendar', 'Star'];
 
@@ -145,20 +129,12 @@ interface GoalsViewProps {
 
 export default function GoalsView({ onModalToggle }: GoalsViewProps) {
   const [goals, setGoals] = useState<Goal[]>(() => {
-    const saved = localStorage.getItem('strategic_goals');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        return parsed.map((g: any) => ({
-          ...g,
-          subGoals: g.subGoals || [],
-          createdAt: g.createdAt || Date.now()
-        }));
-      } catch (e) {
-        return INITIAL_GOALS;
-      }
-    }
-    return INITIAL_GOALS;
+    const saved = storage.get<Goal[]>(STORAGE_KEYS.GOALS, INITIAL_GOALS);
+    return saved.map((g: any) => ({
+      ...g,
+      subGoals: g.subGoals || [],
+      createdAt: g.createdAt || Date.now()
+    }));
   });
 
   const [isCreating, setIsCreating] = useState(false);
@@ -191,7 +167,7 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
   }, [isCreating, confirmDeleteId, onModalToggle]);
 
   useEffect(() => {
-    localStorage.setItem('strategic_goals', JSON.stringify(goals));
+    storage.set(STORAGE_KEYS.GOALS, goals);
   }, [goals]);
 
   const addSubGoal = (goalId: string, text: string) => {

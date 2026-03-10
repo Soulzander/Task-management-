@@ -14,29 +14,13 @@ import {
   Trash2
 } from 'lucide-react';
 
-import { safeJSONParse } from '../utils/storage';
-
-interface Subtask {
-  id: string;
-  text: string;
-  completed: boolean;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  inCharge: string;
-  subordinates: string[];
-  subtasks: Subtask[];
-  createdAt: number;
-}
+import { storage } from '../utils/storage';
+import { Project } from '../types';
+import { STORAGE_KEYS } from '../constants';
 
 export default function ProjectsView() {
   const [projects, setProjects] = useState<Project[]>(() => {
-    return safeJSONParse(localStorage.getItem('projects'), []);
+    return storage.get(STORAGE_KEYS.PROJECTS, []);
   });
   const [isCreating, setIsCreating] = useState(false);
   const [newProject, setNewProject] = useState({
@@ -54,7 +38,7 @@ export default function ProjectsView() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem('projects', JSON.stringify(projects));
+    storage.set(STORAGE_KEYS.PROJECTS, projects);
   }, [projects]);
 
   const handleCreateProject = () => {
