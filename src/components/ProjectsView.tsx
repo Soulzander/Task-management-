@@ -50,6 +50,36 @@ export default function ProjectsView() {
   });
   const [subtaskInput, setSubtaskInput] = useState('');
   const [subordinateInput, setSubordinateInput] = useState('');
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Auto-delete projects after 2 days of expiration
+  useEffect(() => {
+    const checkAutoDelete = () => {
+      const now = Date.now();
+      const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+      
+      setProjects(prev => {
+        const remainingProjects = prev.filter(project => {
+          if (!project.endDate) return true;
+          const endDate = new Date(project.endDate).getTime();
+          if (now > endDate) {
+            const timeSinceExpiration = now - endDate;
+            return timeSinceExpiration <= twoDaysInMs;
+          }
+          return true;
+        });
+        
+        if (remainingProjects.length !== prev.length) {
+          return remainingProjects;
+        }
+        return prev;
+      });
+    };
+
+    const interval = setInterval(checkAutoDelete, 1000 * 60 * 60); // Check every hour
+    checkAutoDelete(); // Initial check
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('projects', JSON.stringify(projects));
@@ -105,6 +135,7 @@ export default function ProjectsView() {
 
   const deleteProject = (id: string) => {
     setProjects(projects.filter(p => p.id !== id));
+    setConfirmDeleteId(null);
   };
 
   const toggleSubtask = (projectId: string, subtaskId: string) => {
@@ -396,12 +427,32 @@ export default function ProjectsView() {
                             </div>
                             <p className="text-zinc-400 leading-relaxed">{project.description}</p>
                           </div>
-                          <button 
-                            onClick={() => deleteProject(project.id)}
-                            className="p-3 rounded-2xl hover:bg-rose-500/10 text-zinc-600 hover:text-rose-500 transition-all"
-                          >
-                            <Trash2 size={20} />
-                          </button>
+                          
+                          {confirmDeleteId === project.id ? (
+                            <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2 animate-in fade-in zoom-in duration-200 relative z-20">
+                              <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Still yes?</span>
+                              <button 
+                                onClick={() => deleteProject(project.id)}
+                                className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded-lg hover:bg-rose-600 transition-colors pointer-events-auto"
+                              >
+                                Yes
+                              </button>
+                              <button 
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="px-2 py-1 bg-white/10 text-white text-[10px] font-bold rounded-lg hover:bg-white/20 transition-colors pointer-events-auto"
+                              >
+                                No
+                              </button>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => setConfirmDeleteId(project.id)}
+                              className="p-3 rounded-2xl hover:bg-rose-500/10 text-zinc-600 hover:text-rose-500 transition-all group/terminate relative z-20 pointer-events-auto"
+                              title="Delete Project"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
