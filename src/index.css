@@ -1,16 +1,51 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700&family=Niconne&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
 @import "tailwindcss";
 
+:root {
+  --theme-pink: #ff00ff;
+  --theme-cyan: #00ffff;
+  --theme-yellow: #ffff00;
+  --theme-purple: #7000ff;
+}
+
+.theme-mecha {
+  --theme-pink: #ff3860;
+  --theme-cyan: #00d1b2;
+  --theme-yellow: #ffdd57;
+  --theme-purple: #8a4d76;
+}
+
+.theme-sakura {
+  --theme-pink: #ffb7b2;
+  --theme-cyan: #e2f0cb;
+  --theme-yellow: #ffdac1;
+  --theme-purple: #c7ceea;
+}
+
+.theme-anime {
+  --theme-pink: #ff7b9c;
+  --theme-cyan: #60d394;
+  --theme-yellow: #ffd97d;
+  --theme-purple: #aaf683;
+}
+
+.theme-shonen {
+  --theme-pink: #ff5722;
+  --theme-cyan: #03a9f4;
+  --theme-yellow: #ffeb3b;
+  --theme-purple: #3f51b5;
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
   --font-journal: "Niconne", cursive;
   --font-remark: "Playfair Display", serif;
   
-  --color-anime-pink: #ff00ff;
-  --color-anime-cyan: #00ffff;
-  --color-anime-yellow: #ffff00;
-  --color-anime-purple: #7000ff;
+  --color-anime-pink: var(--theme-pink);
+  --color-anime-cyan: var(--theme-cyan);
+  --color-anime-yellow: var(--theme-yellow);
+  --color-anime-purple: var(--theme-purple);
 }
 
 body {

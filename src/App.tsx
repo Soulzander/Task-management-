@@ -44,15 +44,19 @@ export default function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [importKey, setImportKey] = useState(0);
   const [userProfile, setUserProfile] = useState(() => {
-    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false, theme: 'default' };
     return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
   });
+
+  useEffect(() => {
+    document.body.className = userProfile.theme && userProfile.theme !== 'default' ? `theme-${userProfile.theme}` : '';
+  }, [userProfile.theme]);
 
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission().then(permission => {
         if (permission === 'granted') {
-          const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+          const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false, theme: 'default' };
           const profile = safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
           profile.notificationsEnabled = true;
           localStorage.setItem('userProfile', JSON.stringify(profile));
@@ -117,7 +121,7 @@ export default function App() {
 
   useEffect(() => {
     const handleStorageChange = () => {
-      const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+      const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false, theme: 'default' };
       setUserProfile(safeJSONParse(localStorage.getItem('userProfile'), defaultProfile));
     };
     

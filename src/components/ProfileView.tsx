@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Download, Upload, Save, User, Image as ImageIcon, Bell } from 'lucide-react';
+import { Download, Upload, Save, User, Image as ImageIcon, Bell, Palette } from 'lucide-react';
 import { safeJSONParse } from '../utils/storage';
 
 interface UserProfile {
@@ -8,6 +8,7 @@ interface UserProfile {
   description: string;
   image: string;
   notificationsEnabled: boolean;
+  theme?: string;
 }
 
 const ANIME_AVATARS = [
@@ -23,7 +24,7 @@ const ANIME_AVATARS = [
 
 export default function ProfileView() {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: ANIME_AVATARS[0], notificationsEnabled: false };
+    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: ANIME_AVATARS[0], notificationsEnabled: false, theme: 'default' };
     return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
   });
   
@@ -270,6 +271,49 @@ export default function ProfileView() {
             {importStatus === 'error' && (
               <p className="text-anime-pink text-[10px] font-mono text-center animate-pulse">CORE CORRUPTION DETECTED</p>
             )}
+          </div>
+        </section>
+
+        {/* Themes Section */}
+        <section className="anime-card p-8 rounded-none space-y-8 relative overflow-hidden lg:col-span-2">
+          <div className="absolute top-0 left-0 w-32 h-32 bg-anime-yellow/5 rotate-45 -translate-x-16 -translate-y-16" />
+          <div className="flex items-center gap-4 mb-6 relative z-10">
+            <div className="w-12 h-12 bg-anime-yellow/20 flex items-center justify-center text-anime-yellow border border-anime-yellow/30 skew-x-[-10deg]">
+              <Palette size={24} className="skew-x-[10deg]" />
+            </div>
+            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Themes</h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 relative z-10">
+            {[
+              { id: 'default', name: 'Cyberpunk', colors: ['#ff00ff', '#00ffff'] },
+              { id: 'anime', name: 'Anime', colors: ['#ff7b9c', '#60d394'] },
+              { id: 'mecha', name: 'Mecha', colors: ['#ff3860', '#00d1b2'] },
+              { id: 'sakura', name: 'Sakura', colors: ['#ffb7b2', '#e2f0cb'] },
+              { id: 'shonen', name: 'Shonen', colors: ['#ff5722', '#03a9f4'] }
+            ].map((theme) => (
+              <button
+                key={theme.id}
+                onClick={() => setProfile(prev => ({ ...prev, theme: theme.id }))}
+                className={`relative p-4 border-2 transition-all skew-x-[-5deg] group overflow-hidden ${
+                  (profile.theme || 'default') === theme.id 
+                    ? 'border-anime-cyan bg-anime-cyan/10 shadow-[0_0_15px_rgba(0,255,255,0.3)]' 
+                    : 'border-white/10 bg-black/40 hover:border-white/30 hover:bg-white/5'
+                }`}
+              >
+                <div className="skew-x-[5deg] flex flex-col items-center gap-3">
+                  <div className="flex gap-2">
+                    <div className="w-6 h-6 rounded-full shadow-lg" style={{ backgroundColor: theme.colors[0] }} />
+                    <div className="w-6 h-6 rounded-full shadow-lg" style={{ backgroundColor: theme.colors[1] }} />
+                  </div>
+                  <span className={`font-bold uppercase tracking-widest text-sm ${
+                    (profile.theme || 'default') === theme.id ? 'text-anime-cyan' : 'text-zinc-400 group-hover:text-white'
+                  }`}>
+                    {theme.name}
+                  </span>
+                </div>
+              </button>
+            ))}
           </div>
         </section>
       </div>

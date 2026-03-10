@@ -62,49 +62,48 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           transform: "translateZ(75px)",
           transformStyle: "preserve-3d",
         }}
-        className={`anime-card p-6 rounded-none flex items-center justify-between gap-4 transition-all duration-300 ${
-          task.completed ? "opacity-60 grayscale-[0.5] border-l-zinc-700" : "opacity-100"
+        className={`bg-white/[0.02] border border-white/10 p-6 rounded-2xl flex items-center justify-between gap-4 transition-all duration-300 ${
+          task.completed ? "opacity-60 grayscale-[0.5]" : "opacity-100"
         }`}
       >
         <div className="flex items-center gap-4 flex-1">
           <button
             onClick={() => onToggle(task.id)}
             style={{ 
-              borderColor: task.completed ? task.color : 'rgba(63, 63, 70, 1)',
+              borderColor: task.completed ? task.color : 'rgba(63, 63, 70, 0.5)',
               backgroundColor: task.completed ? task.color : 'transparent',
-              boxShadow: task.completed ? `0 0 15px ${task.color}` : 'none'
             }}
-            className={`w-8 h-8 rounded-none skew-x-[-10deg] border-2 flex items-center justify-center transition-all duration-300 ${
+            className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all duration-300 ${
               task.completed
                 ? "text-black"
-                : "text-transparent hover:text-anime-cyan"
+                : "text-transparent hover:border-brand-primary"
             }`}
           >
-            {task.completed && <Check size={18} strokeWidth={3} />}
+            {task.completed && <Check size={14} strokeWidth={3} />}
           </button>
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
               <span
-                className={`text-lg font-display font-bold tracking-tight transition-all duration-300 ${
-                  task.completed ? "line-through text-zinc-600" : "text-white anime-text-glow"
+                className={`text-lg font-display font-semibold tracking-tight transition-all duration-300 ${
+                  task.completed ? "line-through text-zinc-600" : "text-white"
                 }`}
               >
                 {task.text}
               </span>
               <span 
-                style={{ backgroundColor: `${task.color}20`, color: task.color, borderColor: `${task.color}40` }}
-                className="px-2 py-0.5 rounded-none skew-x-[-10deg] text-[10px] uppercase font-bold border"
+                style={{ backgroundColor: `${task.color}10`, color: task.color, borderColor: `${task.color}20` }}
+                className="px-2 py-0.5 rounded-md text-[10px] uppercase font-bold border"
               >
                 {task.difficulty}
               </span>
             </div>
             <div className="flex items-center gap-3 mt-1 text-[10px] font-mono uppercase tracking-widest text-zinc-500">
               <span className="flex items-center gap-1">
-                <Clock size={10} className="text-anime-cyan" />
+                <Clock size={10} />
                 {new Date(task.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
               <span className="flex items-center gap-1">
-                <Calendar size={10} className="text-anime-pink" />
+                <Calendar size={10} />
                 {new Date(task.createdAt).toLocaleDateString()}
               </span>
             </div>
@@ -113,19 +112,10 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
 
         <button
           onClick={() => onDelete(task.id)}
-          className="p-2 rounded-none hover:bg-rose-500/20 text-zinc-600 hover:text-rose-500 transition-all duration-300"
+          className="p-2 rounded-xl hover:bg-rose-500/10 text-zinc-600 hover:text-rose-500 transition-all duration-300"
         >
-          <Trash2 size={20} />
+          <Trash2 size={18} />
         </button>
-
-        {/* 3D Decorative Element */}
-        <div
-          style={{
-            transform: "translateZ(50px)",
-            backgroundColor: task.completed ? 'transparent' : `${task.color}40`,
-          }}
-          className="absolute -right-4 -top-4 w-16 h-16 rounded-none skew-x-[-10deg] blur-2xl group-hover:opacity-100 opacity-30 transition-all duration-500"
-        />
       </div>
     </motion.div>
   );
