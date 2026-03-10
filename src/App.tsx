@@ -204,90 +204,107 @@ export default function App() {
               onClick={() => setActivePage('profile')}
             >
               <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-emerald-500 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div className="absolute -inset-2 bg-gradient-to-r from-anime-cyan to-anime-pink rounded-full blur opacity-40 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-pulse"></div>
                 <img
                   src={userProfile.image}
                   alt="Profile"
                   referrerPolicy="no-referrer"
-                  className="relative w-20 h-20 md:w-24 md:h-24 rounded-full border-2 border-white/10 object-cover shadow-2xl group-hover/header:border-indigo-500/50 transition-colors"
+                  className="relative w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-anime-cyan object-cover shadow-[0_0_20px_rgba(0,255,255,0.5)] group-hover/header:scale-105 transition-transform"
                 />
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-anime-cyan rounded-none skew-x-[-10deg] flex items-center justify-center border-2 border-black">
+                  <div className="w-2 h-2 bg-black animate-ping" />
+                </div>
               </div>
               <div className="flex flex-col">
-                <h1 className="text-3xl md:text-5xl font-display font-bold tracking-tight bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent group-hover/header:from-indigo-400 group-hover/header:to-emerald-400 transition-all">
+                <h1 
+                  className="text-3xl md:text-5xl font-display font-bold text-white tracking-tighter anime-text-glow uppercase italic glitch-text"
+                  data-text={userProfile.name}
+                >
                   {userProfile.name}
                 </h1>
-                <p className="text-zinc-500 font-medium text-sm md:text-base group-hover/header:text-zinc-400 transition-colors">{userProfile.description || 'Productivity Architect'}</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-[2px] w-8 bg-anime-cyan shadow-[0_0_10px_rgba(0,255,255,0.8)]" />
+                  <p className="text-anime-cyan font-mono text-[10px] tracking-[0.3em] uppercase opacity-80">
+                    {userProfile.description || 'Productivity Architect'}
+                  </p>
+                </div>
               </div>
             </motion.header>
 
             {/* Input & Controls Section */}
-            <section className="glass p-8 rounded-3xl mb-12 space-y-6">
+            <section className="anime-card p-8 rounded-none mb-12 space-y-6 relative overflow-hidden border-r-4 border-r-anime-pink/30">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-anime-cyan/5 rotate-45 translate-x-16 -translate-y-16" />
+              <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-anime-cyan/20 to-transparent" />
+              
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="relative flex-1">
+                  <div className="absolute -top-6 left-0 text-[8px] font-mono text-anime-cyan/50 uppercase tracking-widest">Task Input Buffer</div>
                   <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && addTask()}
-                    placeholder="What needs to be done?"
-                    className="w-full h-14 pl-6 pr-14 rounded-2xl bg-zinc-900/50 border border-zinc-800 focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none text-lg text-zinc-100 placeholder:text-zinc-600"
+                    placeholder="INITIALIZE NEW TASK..."
+                    className="w-full h-14 pl-6 pr-14 bg-black/60 border-b-2 border-anime-cyan/30 focus:border-anime-cyan outline-none text-lg text-white font-display tracking-wider transition-all placeholder:text-zinc-800"
                   />
                   <button
                     onClick={addTask}
                     disabled={!inputValue.trim()}
-                    className="absolute right-2 top-2 w-10 h-10 rounded-xl bg-indigo-500 hover:bg-indigo-400 disabled:bg-zinc-800 disabled:text-zinc-600 text-white flex items-center justify-center transition-all shadow-lg shadow-indigo-500/20"
+                    className="absolute right-2 top-2 w-10 h-10 bg-anime-purple hover:bg-anime-pink disabled:bg-zinc-900 disabled:text-zinc-700 text-white flex items-center justify-center transition-all shadow-lg shadow-anime-purple/20 skew-x-[-10deg]"
                   >
-                    <Plus size={24} />
+                    <Plus size={24} className="skew-x-[10deg]" />
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 p-1 rounded-xl bg-zinc-900/50 border border-zinc-800">
+                <div className="flex items-center gap-2 p-1 bg-black/40 rounded-none skew-x-[-10deg] border border-white/10">
                   {(['easy', 'medium', 'hard'] as const).map((d) => (
                     <button
                       key={d}
                       onClick={() => setDifficulty(d)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                      className={`px-4 py-2 rounded-none text-[10px] font-black uppercase tracking-widest transition-all ${
                         difficulty === d
-                          ? 'bg-zinc-800 text-white shadow-sm'
-                          : 'text-zinc-500 hover:text-zinc-300'
+                          ? 'bg-anime-cyan text-black shadow-[0_0_10px_rgba(0,255,255,0.5)]'
+                          : 'text-zinc-600 hover:text-white'
                       }`}
                     >
-                      {d}
+                      <span className="skew-x-[10deg] block">{d}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-zinc-800/50">
-                <div className="flex items-center gap-2 p-1 rounded-xl bg-zinc-900/50 border border-zinc-800">
+              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/5">
+                <div className="flex items-center gap-2 p-1 bg-black/40 rounded-none skew-x-[-10deg] border border-white/10">
                   {(['all', 'active', 'completed'] as const).map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                      className={`px-4 py-2 rounded-none text-[10px] font-black uppercase tracking-widest transition-all ${
                         filter === f
-                          ? 'bg-zinc-800 text-white shadow-sm'
-                          : 'text-zinc-500 hover:text-zinc-300'
+                          ? 'bg-anime-pink text-white shadow-[0_0_10px_rgba(255,0,255,0.5)]'
+                          : 'text-zinc-600 hover:text-white'
                       }`}
                     >
-                      {f}
+                      <span className="skew-x-[10deg] block">{f}</span>
                     </button>
                   ))}
                 </div>
 
-                <div className="flex items-center gap-6 text-sm">
+                <div className="flex items-center gap-6">
                   <div className="flex flex-col items-end">
-                    <span className="text-zinc-500">Progress</span>
-                    <span className="text-zinc-200 font-medium">
-                      {earnedPoints} / {totalPoints} points
+                    <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-anime-cyan mb-1 animate-pulse">Core Sync Status</span>
+                    <span className="text-white font-mono text-xs font-bold">
+                      {earnedPoints} / {totalPoints} <span className="text-anime-cyan">UNITS</span>
                     </span>
                   </div>
-                  <div className="w-24 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="w-32 h-2 bg-zinc-900 rounded-none skew-x-[-20deg] overflow-hidden border border-white/10 relative">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${progressPercentage}%` }}
-                      className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                    />
+                      className="h-full bg-gradient-to-r from-anime-purple via-anime-cyan to-white shadow-[0_0_15px_rgba(0,255,255,0.8)] relative"
+                    >
+                      <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.4)_50%,transparent_100%)] animate-[scanline_2s_linear_infinite] w-full" />
+                    </motion.div>
                   </div>
                 </div>
               </div>

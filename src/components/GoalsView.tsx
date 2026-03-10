@@ -321,10 +321,11 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
 
       return {
         progress: Math.round(progress),
-        label: `${daysLeft} days left`,
-        isExpired: false,
-        displayValue: `${daysLeft}d`,
-        isWaiting: false
+        label: daysLeft <= 0 ? 'Expired' : `${daysLeft} days left`,
+        isExpired: now.getTime() >= end.getTime(),
+        displayValue: `${Math.max(0, daysLeft)}d`,
+        isWaiting: false,
+        expirationDate: end
       };
     }
 
@@ -346,14 +347,15 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
     }
 
     const durationMs = durationDays * 24 * 60 * 60 * 1000;
+    const expirationTime = createdAt + durationMs;
     const elapsed = Date.now() - createdAt;
     const progress = Math.min(100, Math.max(0, (elapsed / durationMs) * 100));
     
-    let daysLeft = Math.ceil((durationMs - elapsed) / (24 * 60 * 60 * 1000));
+    let daysLeft = Math.ceil((expirationTime - Date.now()) / (24 * 60 * 60 * 1000));
     
     let label = '';
     let isExpired = false;
-    if (daysLeft < 0) {
+    if (daysLeft <= 0) {
       label = 'Expired';
       isExpired = true;
     } else if (daysLeft === 0) {
@@ -369,8 +371,44 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
       label, 
       isExpired,
       displayValue: `${Math.max(0, daysLeft)}d`,
-      isWaiting: false
+      isWaiting: false,
+      expirationDate: new Date(expirationTime)
     };
+  };
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Auto-delete goals after 2 days of expiration
+  useEffect(() => {
+    const checkAutoDelete = () => {
+      const now = Date.now();
+      const twoDaysInMs = 2 * 24 * 60 * 60 * 1000;
+      
+      setGoals(prev => {
+        const remainingGoals = prev.filter(goal => {
+          const timeStats = calculateTimeProgress(goal.createdAt, goal.period, goal.subGoals.length > 0);
+          if (timeStats.isExpired && timeStats.expirationDate) {
+            const timeSinceExpiration = now - timeStats.expirationDate.getTime();
+            return timeSinceExpiration <= twoDaysInMs;
+          }
+          return true;
+        });
+        
+        if (remainingGoals.length !== prev.length) {
+          return remainingGoals;
+        }
+        return prev;
+      });
+    };
+
+    const interval = setInterval(checkAutoDelete, 1000 * 60 * 60); // Check every hour
+    checkAutoDelete(); // Initial check
+    return () => clearInterval(interval);
+  }, []);
+
+  const terminateGoal = (id: string) => {
+    setGoals(prev => prev.filter(g => g.id !== id));
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -566,27 +604,55 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                       />
 
                       <div className="flex items-start justify-between relative z-10">
-                        <motion.div 
-                          animate={{ 
-                            y: [0, -4, 0],
-                            rotate: [0, 3, 0]
-                          }}
-                          transition={{ 
-                            duration: 4, 
-                            repeat: Infinity, 
-                            ease: "easeInOut",
-                            delay: index * 0.5
-                          }}
-                          className="w-12 h-12 rounded-xl flex items-center justify-center shadow-2xl"
-                          style={{ 
-                            backgroundColor: `${goal.color}30`, 
-                            color: goal.color, 
-                            border: `1px solid ${goal.color}60`,
-                            boxShadow: `0 0 20px ${goal.color}40`
-                          }}
-                        >
-                          <Icon size={24} />
-                        </motion.div>
+                        <div className="flex items-center gap-3">
+                          <motion.div 
+                            animate={{ 
+                              y: [0, -4, 0],
+                              rotate: [0, 3, 0]
+                            }}
+                            transition={{ 
+                              duration: 4, 
+                              repeat: Infinity, 
+                              ease: "easeInOut",
+                              delay: index * 0.5
+                            }}
+                            className="w-12 h-12 rounded-xl flex items-center justify-center shadow-2xl"
+                            style={{ 
+                              backgroundColor: `${goal.color}30`, 
+                              color: goal.color, 
+                              border: `1px solid ${goal.color}60`,
+                              boxShadow: `0 0 20px ${goal.color}40`
+                            }}
+                          >
+                            <Icon size={24} />
+                          </motion.div>
+                          
+                          {confirmDeleteId === goal.id ? (
+                            <div className="flex items-center gap-2 bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2 animate-in fade-in zoom-in duration-200">
+                              <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Still yes?</span>
+                              <button 
+                                onClick={() => terminateGoal(goal.id)}
+                                className="px-2 py-1 bg-rose-500 text-white text-[10px] font-bold rounded-lg hover:bg-rose-600 transition-colors"
+                              >
+                                Yes
+                              </button>
+                              <button 
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="px-2 py-1 bg-white/10 text-white text-[10px] font-bold rounded-lg hover:bg-white/20 transition-colors"
+                              >
+                                No
+                              </button>
+                            </div>
+                          ) : (
+                            <button 
+                              onClick={() => setConfirmDeleteId(goal.id)}
+                              className="p-2 rounded-xl bg-white/5 hover:bg-rose-500/10 text-zinc-500 hover:text-rose-500 transition-all border border-transparent hover:border-rose-500/20 group/terminate"
+                              title="Terminate Goal"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          )}
+                        </div>
                         <div className="flex flex-col items-end gap-2">
                           <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-300 bg-white/10 px-3 py-1 rounded-full border border-white/10 backdrop-blur-md">
                             {goal.period}
@@ -673,7 +739,7 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                           <span className="text-[9px] font-mono text-zinc-600">{goal.subGoals.length} items</span>
                         </div>
 
-                        <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
+                        <div className="space-y-2 pr-2">
                           <AnimatePresence mode="popLayout">
                             {goal.subGoals.map((sg) => (
                               <motion.div
@@ -731,6 +797,34 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                       <div className="absolute -bottom-8 -right-8 opacity-10 group-hover:opacity-25 transition-all duration-700 pointer-events-none group-hover:scale-110 group-hover:-rotate-12">
                         <Star size={140} strokeWidth={0.5} style={{ color: goal.color, filter: `blur(2px)` }} />
                       </div>
+
+                      {/* WIN / FAIL Overlay */}
+                      {timeStats.isExpired && (
+                        <motion.div 
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
+                        >
+                          <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+                          <div className="relative z-10 text-center transform -rotate-12">
+                            {progress === 100 ? (
+                              <div className="space-y-0">
+                                <h4 className="text-6xl font-display font-black text-emerald-500 tracking-tighter drop-shadow-[0_0_20px_rgba(16,185,129,0.8)]">
+                                  WIN
+                                </h4>
+                                <p className="text-[10px] font-bold text-emerald-400/60 uppercase tracking-[0.4em] mt-2">Mission Accomplished</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-0">
+                                <h4 className="text-5xl font-display font-black text-rose-500 tracking-tighter drop-shadow-[0_0_20px_rgba(244,63,94,0.8)]">
+                                  YOU FAIL
+                                </h4>
+                                <p className="text-[10px] font-bold text-rose-400/60 uppercase tracking-[0.4em] mt-2">Time has expired</p>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
                     </div>
                   </TiltCard>
                 );

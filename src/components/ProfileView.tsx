@@ -10,9 +10,20 @@ interface UserProfile {
   notificationsEnabled: boolean;
 }
 
+const ANIME_AVATARS = [
+  'https://picsum.photos/seed/anime1/200/200',
+  'https://picsum.photos/seed/anime2/200/200',
+  'https://picsum.photos/seed/anime3/200/200',
+  'https://picsum.photos/seed/anime4/200/200',
+  'https://picsum.photos/seed/anime5/200/200',
+  'https://picsum.photos/seed/anime6/200/200',
+  'https://picsum.photos/seed/anime7/200/200',
+  'https://picsum.photos/seed/anime8/200/200',
+];
+
 export default function ProfileView() {
   const [profile, setProfile] = useState<UserProfile>(() => {
-    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: 'https://picsum.photos/seed/user/200/200', notificationsEnabled: false };
+    const defaultProfile = { name: 'Kim', description: 'Productivity Architect', image: ANIME_AVATARS[0], notificationsEnabled: false };
     return safeJSONParse(localStorage.getItem('userProfile'), defaultProfile);
   });
   
@@ -89,34 +100,58 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pb-32">
       <header className="mb-12">
-        <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tight text-white mb-4">
+        <h1 className="text-4xl md:text-5xl font-display font-bold tracking-tighter text-white mb-4 anime-text-glow uppercase italic">
           Profile Settings
         </h1>
-        <p className="text-zinc-400 text-lg">Manage your identity and data.</p>
+        <p className="text-anime-cyan font-mono text-xs tracking-[0.3em] uppercase opacity-80">Manage your identity and data.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Profile Edit Section */}
-        <section className="glass p-8 rounded-3xl space-y-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
-              <User size={24} />
+        <section className="anime-card p-8 rounded-none space-y-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-anime-cyan/5 rotate-45 translate-x-16 -translate-y-16" />
+          <div className="flex items-center gap-4 mb-6 relative z-10">
+            <div className="w-12 h-12 bg-anime-purple/20 flex items-center justify-center text-anime-cyan border border-anime-cyan/30 skew-x-[-10deg]">
+              <User size={24} className="skew-x-[10deg]" />
             </div>
-            <h2 className="text-2xl font-display font-bold text-white">Identity</h2>
+            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Identity</h2>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-8 relative z-10">
+            <div className="space-y-4">
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-anime-cyan ml-1">Select Avatar</label>
+              <div className="grid grid-cols-4 gap-4">
+                {ANIME_AVATARS.map((avatar, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setProfile(prev => ({ ...prev, image: avatar }))}
+                    className={`relative aspect-square overflow-hidden border-2 transition-all ${
+                      profile.image === avatar ? 'border-anime-cyan shadow-[0_0_15px_rgba(0,255,255,0.5)] scale-105' : 'border-white/10 grayscale hover:grayscale-0 hover:border-white/30'
+                    }`}
+                  >
+                    <img src={avatar} alt={`Avatar ${idx}`} className="w-full h-full object-cover" />
+                    {profile.image === avatar && (
+                      <div className="absolute inset-0 bg-anime-cyan/20 flex items-center justify-center">
+                        <div className="w-2 h-2 bg-white rounded-full animate-ping" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex flex-col items-center sm:flex-row gap-6">
               <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                <div className="absolute -inset-2 bg-gradient-to-r from-anime-cyan to-anime-pink rounded-full blur opacity-40 group-hover:opacity-100 transition duration-500 animate-pulse"></div>
                 <img 
                   src={profile.image} 
                   alt="Profile" 
-                  className="w-32 h-32 rounded-full object-cover border-4 border-white/10 group-hover:border-indigo-500/50 transition-colors"
+                  className="relative w-32 h-32 rounded-full object-cover border-4 border-anime-cyan shadow-[0_0_20px_rgba(0,255,255,0.5)] group-hover:scale-105 transition-transform"
                 />
-                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <ImageIcon className="text-white" size={32} />
+                <div className="absolute inset-0 bg-black/50 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-20">
+                  <Upload className="text-white" size={32} />
                 </div>
                 <input 
                   type="file" 
@@ -128,35 +163,35 @@ export default function ProfileView() {
               </div>
               
               <div className="flex-1 w-full space-y-3">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 ml-1">Display Name</label>
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-anime-cyan ml-1">Display Name</label>
                 <input 
                   type="text"
                   value={profile.name}
                   onChange={e => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full h-14 px-6 rounded-2xl bg-black/40 border border-white/5 focus:border-indigo-500/50 outline-none text-zinc-200 text-lg transition-all"
+                  className="w-full h-14 px-6 bg-black/60 border-b-2 border-anime-cyan/30 focus:border-anime-cyan outline-none text-white text-lg font-display tracking-wider transition-all"
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 ml-1">Description</label>
+              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-anime-cyan ml-1">Description</label>
               <input 
                 type="text"
                 value={profile.description || ''}
                 onChange={e => setProfile(prev => ({ ...prev, description: e.target.value }))}
                 placeholder="Productivity Architect"
-                className="w-full h-14 px-6 rounded-2xl bg-black/40 border border-white/5 focus:border-indigo-500/50 outline-none text-zinc-200 text-lg transition-all"
+                className="w-full h-14 px-6 bg-black/60 border-b-2 border-anime-cyan/30 focus:border-anime-cyan outline-none text-white text-lg font-display tracking-wider transition-all"
               />
             </div>
 
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-black/40 border border-white/5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 skew-x-[-5deg]">
+              <div className="flex items-center gap-3 skew-x-[5deg]">
+                <div className="w-10 h-10 bg-anime-purple/20 flex items-center justify-center text-anime-cyan border border-anime-cyan/20">
                   <Bell size={20} />
                 </div>
                 <div>
-                  <h3 className="text-white font-medium">Notifications</h3>
-                  <p className="text-zinc-500 text-xs">Get alerts for deadlines and tasks</p>
+                  <h3 className="text-white font-bold uppercase text-xs tracking-wider">Notifications</h3>
+                  <p className="text-zinc-500 text-[10px] uppercase font-mono">System alerts & task updates</p>
                 </div>
               </div>
               <button
@@ -173,42 +208,43 @@ export default function ProfileView() {
                     setProfile(prev => ({ ...prev, notificationsEnabled: !prev.notificationsEnabled }));
                   }
                 }}
-                className={`w-12 h-6 rounded-full transition-colors relative ${profile.notificationsEnabled ? 'bg-indigo-500' : 'bg-zinc-700'}`}
+                className={`w-12 h-6 rounded-none skew-x-[5deg] transition-colors relative ${profile.notificationsEnabled ? 'bg-anime-cyan' : 'bg-zinc-800'}`}
               >
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${profile.notificationsEnabled ? 'left-7' : 'left-1'}`} />
+                <div className={`absolute top-1 w-4 h-4 rounded-none bg-white transition-transform ${profile.notificationsEnabled ? 'left-7 bg-black' : 'left-1'}`} />
               </button>
             </div>
 
             <button 
               onClick={handleSave}
-              className="w-full h-14 rounded-2xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium flex items-center justify-center gap-2 transition-all"
+              className="anime-button w-full h-14 flex items-center justify-center gap-2"
             >
-              <Save size={20} />
-              {isSaved ? 'Saved!' : 'Save Changes'}
+              <Save size={20} className="skew-x-[10deg]" />
+              <span className="skew-x-[10deg] uppercase tracking-widest">{isSaved ? 'Synchronized!' : 'Update System'}</span>
             </button>
           </div>
         </section>
 
         {/* Data Management Section */}
-        <section className="glass p-8 rounded-3xl space-y-8">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-              <Save size={24} />
+        <section className="anime-card p-8 rounded-none space-y-8 relative overflow-hidden">
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-anime-pink/5 -rotate-45 -translate-x-16 translate-y-16" />
+          <div className="flex items-center gap-4 mb-6 relative z-10">
+            <div className="w-12 h-12 bg-anime-pink/20 flex items-center justify-center text-anime-pink border border-anime-pink/30 skew-x-[-10deg]">
+              <Save size={24} className="skew-x-[10deg]" />
             </div>
-            <h2 className="text-2xl font-display font-bold text-white">Data Management</h2>
+            <h2 className="text-2xl font-display font-bold text-white uppercase tracking-tight">Data Core</h2>
           </div>
 
-          <p className="text-zinc-400">
-            Export your data to a JSON file to back it up or transfer it to another device. You can import it later to restore your workspace.
+          <p className="text-zinc-400 text-sm font-mono uppercase tracking-tight relative z-10">
+            Backup your strategic trajectory to the local storage or external data crystals.
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-4 relative z-10">
             <button 
               onClick={exportData}
-              className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center justify-center gap-2 transition-all border border-white/5"
+              className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-bold flex items-center justify-center gap-2 transition-all border border-white/10 skew-x-[-10deg]"
             >
-              <Download size={20} />
-              Export Data
+              <Download size={20} className="skew-x-[10deg] text-anime-cyan" />
+              <span className="skew-x-[10deg] uppercase tracking-widest">Export Core</span>
             </button>
 
             <div className="relative">
@@ -221,18 +257,18 @@ export default function ProfileView() {
               />
               <button 
                 onClick={() => importInputRef.current?.click()}
-                className="w-full h-14 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-medium flex items-center justify-center gap-2 transition-all border border-white/5"
+                className="w-full h-14 bg-zinc-900 hover:bg-zinc-800 text-white font-bold flex items-center justify-center gap-2 transition-all border border-white/10 skew-x-[-10deg]"
               >
-                <Upload size={20} />
-                Import Data
+                <Upload size={20} className="skew-x-[10deg] text-anime-pink" />
+                <span className="skew-x-[10deg] uppercase tracking-widest">Import Core</span>
               </button>
             </div>
             
             {importStatus === 'success' && (
-              <p className="text-emerald-400 text-sm text-center">Data imported successfully!</p>
+              <p className="text-anime-cyan text-[10px] font-mono text-center animate-pulse">SYSTEM RESTORE SUCCESSFUL</p>
             )}
             {importStatus === 'error' && (
-              <p className="text-red-400 text-sm text-center">Error importing data. Invalid file format.</p>
+              <p className="text-anime-pink text-[10px] font-mono text-center animate-pulse">CORE CORRUPTION DETECTED</p>
             )}
           </div>
         </section>
