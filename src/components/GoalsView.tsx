@@ -283,7 +283,8 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
         label: 'Add objective to start',
         isExpired: false,
         displayValue: '-',
-        isWaiting: true
+        isWaiting: true,
+        daysLeft: 999
       };
     }
 
