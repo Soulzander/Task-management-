@@ -25,11 +25,9 @@ const INITIAL_GOALS: Goal[] = [
     description: 'Harness the energy of immediate action to drive your weekly progress.',
     color: '#10b981', // emerald
     icon: 'Zap',
-    subGoals: [
-      { id: '1', text: 'Finish project documentation', completed: false },
-      { id: '2', text: 'Review team performance', completed: true }
-    ],
-    createdAt: Date.now()
+    subGoals: [],
+    createdAt: Date.now(),
+    completed: false
   },
   {
     id: '1m',
@@ -39,7 +37,8 @@ const INITIAL_GOALS: Goal[] = [
     color: '#6366f1', // indigo
     icon: 'Rocket',
     subGoals: [],
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    completed: false
   },
   {
     id: '6m',
@@ -49,7 +48,8 @@ const INITIAL_GOALS: Goal[] = [
     color: '#f59e0b', // amber
     icon: 'Target',
     subGoals: [],
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    completed: false
   },
   {
     id: '1y',
@@ -59,7 +59,8 @@ const INITIAL_GOALS: Goal[] = [
     color: '#f43f5e', // rose
     icon: 'Trophy',
     subGoals: [],
-    createdAt: Date.now()
+    createdAt: Date.now(),
+    completed: false
   }
 ];
 
@@ -133,7 +134,8 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
     return saved.map((g: any) => ({
       ...g,
       subGoals: g.subGoals || [],
-      createdAt: g.createdAt || Date.now()
+      createdAt: g.createdAt || Date.now(),
+      completed: g.completed || false
     }));
   });
 
@@ -214,6 +216,12 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
     setConfirmDeleteId(null);
   };
 
+  const toggleGoalCompletion = (id: string) => {
+    setGoals(prev => prev.map(g => 
+      g.id === id ? { ...g, completed: !g.completed } : g
+    ));
+  };
+
   const createCustomGoal = () => {
     if (!newGoal.title || !newGoal.period) return;
     const goal: Goal = {
@@ -224,7 +232,8 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
       color: newGoal.color,
       icon: newGoal.icon,
       subGoals: [],
-      createdAt: Date.now()
+      createdAt: Date.now(),
+      completed: false
     };
     setGoals(prev => [...prev, goal]);
     setIsCreating(false);
@@ -249,20 +258,8 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
     return Math.round((completed / subGoals.length) * 100);
   };
 
-  const calculateTimeProgress = (createdAt: number, period: string, hasObjectives: boolean) => {
+  const calculateTimeProgress = (createdAt: number, period: string) => {
     const lowerPeriod = period.toLowerCase();
-    const isOneWeek = lowerPeriod === '1 week' || lowerPeriod === 'one week';
-
-    if (!isOneWeek && !hasObjectives) {
-      return {
-        progress: 0,
-        label: 'Add objective to start',
-        isExpired: false,
-        displayValue: '-',
-        isWaiting: true,
-        daysLeft: 999
-      };
-    }
 
     const now = new Date();
     let start = new Date(now);
@@ -363,7 +360,7 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
     const checkExpired = () => {
       setGoals(prev => {
         const filtered = prev.filter(goal => {
-          const stats = calculateTimeProgress(goal.createdAt, goal.period, goal.subGoals.length > 0);
+          const stats = calculateTimeProgress(goal.createdAt, goal.period);
           // Remove if more than 2 days past deadline (daysLeft <= -2)
           return stats.daysLeft > -2;
         });
@@ -597,8 +594,7 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {goals.map((goal, index) => {
                 const Icon = ICON_MAP[goal.icon] || Target;
-                const progress = calculateProgress(goal.subGoals);
-                const timeStats = calculateTimeProgress(goal.createdAt, goal.period, goal.subGoals.length > 0);
+                const timeStats = calculateTimeProgress(goal.createdAt, goal.period);
                 
                 return (
                   <TiltCard key={goal.id} color={goal.color} index={index}>
@@ -637,6 +633,13 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                               {goal.period}
                             </span>
                             <button 
+                              onClick={() => toggleGoalCompletion(goal.id)}
+                              className={`p-1.5 rounded-lg transition-all ${goal.completed ? 'bg-emerald-500/20 text-emerald-400' : 'hover:bg-emerald-500/10 text-zinc-500 hover:text-emerald-500 opacity-40 hover:opacity-100'}`}
+                              title={goal.completed ? "Mark as incomplete" : "Mark as completed"}
+                            >
+                              <CheckCircle2 size={14} />
+                            </button>
+                            <button 
                               onClick={() => setConfirmDeleteId(goal.id)}
                               className="p-1.5 rounded-lg hover:bg-rose-500/10 text-zinc-500 hover:text-rose-500 transition-all opacity-40 hover:opacity-100"
                               title="Delete Goal"
@@ -645,43 +648,23 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                             </button>
                           </div>
                           <div className="flex flex-col items-end gap-1.5">
-                            {/* Objectives Progress */}
-                            <div className="flex items-center gap-2" title="Objectives Completion">
-                              <span className="text-[8px] font-bold uppercase tracking-wider text-zinc-500">Tasks</span>
-                              <div className="w-16 h-1.5 bg-zinc-900/80 rounded-full overflow-hidden border border-white/5">
-                                <motion.div
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${progress}%` }}
-                                  transition={{ duration: 1.5, ease: "circOut" }}
-                                  className="h-full relative"
-                                  style={{ 
-                                    backgroundColor: goal.color,
-                                    boxShadow: `0 0 10px ${goal.color}`
-                                  }}
-                                >
-                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-pulse" />
-                                </motion.div>
-                              </div>
-                              <span className="text-[10px] font-bold font-mono w-6 text-right" style={{ color: goal.color }}>{progress}%</span>
-                            </div>
-                            
                             {/* Time Progress */}
                             <div className="flex items-center gap-2" title={timeStats.label}>
-                              <span className="text-[8px] font-bold uppercase tracking-wider text-zinc-500">Time</span>
-                              {timeStats.isExpired ? (
+                              <span className="text-[8px] font-bold uppercase tracking-wider text-zinc-500">Status</span>
+                              {goal.completed ? (
                                 <div className="flex items-center gap-2">
-                                  {progress === 100 ? (
-                                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider animate-pulse">Win</span>
-                                  ) : (
-                                    <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider animate-pulse">You Lost</span>
-                                  )}
+                                  <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Completed</span>
+                                </div>
+                              ) : timeStats.isExpired ? (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider animate-pulse">Expired</span>
                                 </div>
                               ) : (
                                 <>
                                   <div className="w-16 h-1.5 bg-zinc-900/80 rounded-full overflow-hidden border border-white/5 relative">
                                     <motion.div
-                                      initial={{ width: 0 }}
-                                      animate={{ width: `${timeStats.progress}%` }}
+                                      initial={{ width: "100%" }}
+                                      animate={{ width: `${100 - timeStats.progress}%` }}
                                       transition={{ duration: 1.5, ease: "circOut", delay: 0.2 }}
                                       className="h-full relative rounded-full overflow-hidden"
                                       style={{ 
@@ -716,74 +699,13 @@ export default function GoalsView({ onModalToggle }: GoalsViewProps) {
                         </div>
                       </div>
 
-                      <div className="space-y-1 relative z-10">
+                      <div className="space-y-1 relative z-10 flex-1">
                         <h3 className="text-xl font-display font-bold text-white group-hover:translate-x-1 transition-transform duration-500">
                           {goal.title}
                         </h3>
                         <p className="text-zinc-400 text-xs leading-relaxed opacity-70 group-hover:opacity-100 transition-opacity line-clamp-2">
                           {goal.description}
                         </p>
-                      </div>
-
-                      {/* Interactive Objectives List */}
-                      <div className="relative z-10 flex-1 flex flex-col gap-4">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
-                          <h4 className="text-[9px] font-bold uppercase tracking-[0.2em] text-zinc-500">Objectives</h4>
-                          <span className="text-[9px] font-mono text-zinc-600">{goal.subGoals.length} items</span>
-                        </div>
-
-                        <div className="space-y-2 max-h-[160px] overflow-y-auto custom-scrollbar pr-2">
-                          <AnimatePresence mode="popLayout">
-                            {goal.subGoals.map((sg) => (
-                              <motion.div
-                                key={sg.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/5 group/item hover:bg-white/[0.1] hover:border-white/20 transition-all cursor-default"
-                              >
-                                <button 
-                                  onClick={() => toggleSubGoal(goal.id, sg.id)}
-                                  className="relative flex items-center justify-center transition-transform active:scale-75"
-                                >
-                                  {sg.completed ? (
-                                    <CheckCircle2 size={16} style={{ color: goal.color, filter: `drop-shadow(0 0 5px ${goal.color})` }} />
-                                  ) : (
-                                    <Circle size={16} className="text-zinc-700 group-hover/item:text-zinc-500 transition-colors" />
-                                  )}
-                                </button>
-                                <span className={`text-xs flex-1 font-medium transition-all ${sg.completed ? 'text-zinc-600 line-through' : 'text-zinc-300'}`}>
-                                  {sg.text}
-                                </span>
-                                <button 
-                                  onClick={() => deleteSubGoal(goal.id, sg.id)}
-                                  className="opacity-0 group-item-hover:opacity-100 p-1.5 rounded-lg hover:bg-rose-500/10 hover:text-rose-500 transition-all text-zinc-600"
-                                >
-                                  <Trash2 size={14} />
-                                </button>
-                              </motion.div>
-                            ))}
-                          </AnimatePresence>
-                        </div>
-
-                        <div className="mt-auto pt-4">
-                          <div className="relative group/input">
-                            <input 
-                              type="text"
-                              placeholder="New objective..."
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  addSubGoal(goal.id, e.currentTarget.value);
-                                  e.currentTarget.value = '';
-                                }
-                              }}
-                              className="w-full h-10 pl-4 pr-12 rounded-xl bg-black/40 border border-white/5 focus:border-white/30 outline-none text-xs text-zinc-200 placeholder:text-zinc-600 transition-all backdrop-blur-xl"
-                            />
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                              <Plus size={16} className="text-zinc-600 group-focus-within/input:text-white transition-colors" />
-                            </div>
-                          </div>
-                        </div>
                       </div>
 
                       {/* 3D Decorative Icon */}

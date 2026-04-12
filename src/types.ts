@@ -47,6 +47,7 @@ export interface Goal {
   icon: string;
   subGoals: SubGoal[];
   createdAt: number;
+  completed?: boolean;
 }
 
 export interface JournalEntry {
