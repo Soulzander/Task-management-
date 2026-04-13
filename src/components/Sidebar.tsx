@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Home, Target, Calendar, Briefcase, BookOpen, User } from 'lucide-react';
+import { Home, Target, Calendar, Briefcase, Activity, User } from 'lucide-react';
 
 interface SidebarProps {
   activePage: string;
@@ -11,7 +11,7 @@ const navItems = [
   { id: 'goals', icon: Target, label: 'Goals' },
   { id: 'calendar', icon: Calendar, label: 'Calendar' },
   { id: 'projects', icon: Briefcase, label: 'Project Management' },
-  { id: 'journal', icon: BookOpen, label: 'Journal' },
+  { id: 'review', icon: Activity, label: 'Review' },
   { id: 'profile', icon: User, label: 'Profile' },
 ];
 

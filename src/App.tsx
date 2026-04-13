@@ -6,7 +6,7 @@ import TaskCard from './components/TaskCard';
 import Sidebar from './components/Sidebar';
 import CalendarView from './components/CalendarView';
 import GoalsView from './components/GoalsView';
-import JournalView from './components/JournalView';
+import ReviewView from './components/ReviewView';
 import ProjectsView from './components/ProjectsView';
 import ProfileView from './components/ProfileView';
 
@@ -306,8 +306,8 @@ export default function App() {
         return <CalendarView tasks={tasks} />;
       case 'projects':
         return <ProjectsView />;
-      case 'journal':
-        return <JournalView />;
+      case 'review':
+        return <ReviewView tasks={tasks} />;
       case 'profile':
         return <ProfileView />;
       default:
