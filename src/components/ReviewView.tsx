@@ -36,11 +36,11 @@ export default function ReviewView({ tasks }: ReviewViewProps) {
   }, [tasks]);
 
   const overallStats = useMemo(() => {
-    const total = tasks.length;
-    const completed = tasks.filter(t => t.completed).length;
+    const total = last7Days.reduce((acc, day) => acc + day.total, 0);
+    const completed = last7Days.reduce((acc, day) => acc + day.completed, 0);
     const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
     return { total, completed, percentage };
-  }, [tasks]);
+  }, [last7Days]);
 
   // Generate insights (small blogs)
   const insights = useMemo(() => {
